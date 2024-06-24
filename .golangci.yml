@@ -1,0 +1,32 @@
+---
+linters:
+  disable:
+    - contextcheck
+    - deadcode
+    - depguard
+    - dupl
+    - exhaustruct
+    - exhaustivestruct
+    - gci
+    - gochecknoglobals
+    - godox
+    - goerr113
+    - golint
+    - ifshort
+    - interfacer
+    - lll
+    - maligned
+    - nosnakecase
+    - nlreturn
+    - scopelint
+    - structcheck
+    - tagliatelle
+    - varcheck
+    - varnamelen
+    - wrapcheck
+    - wsl
+    - tagalign
+  enable-all: true
+linters-settings:
+  funlen:
+    lines: 80
