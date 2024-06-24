@@ -17,22 +17,22 @@ func Must(service *Service, err error) *Service {
 	return service
 }
 
-func (s *TaskService) CreateTask(task *Task) error {
-	return nil
+func (s *TaskService) CreateTask(task *Task) (string, error) {
+	return s.repo.Save(task)
 }
 
 func (s *TaskService) GetTasks() ([]*Task, error) {
-	return nil, nil
+	return s.repo.FindAll()
 }
 
 func (s *TaskService) GetTaskByID(id string) (*Task, error) {
-	return nil, nil
+	return s.repo.FindByID(id)
 }
 
 func (s *TaskService) UpdateTask(task *Task) error {
-	return nil
+	return s.repo.Update(task)
 }
 
 func (s *TaskService) DeleteTask(id string) error {
-	return nil
+	return s.repo.Delete(id)
 }

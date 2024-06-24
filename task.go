@@ -7,7 +7,7 @@ type Task struct {
 }
 
 type Service interface {
-	CreateTask(task *Task) error
+	CreateTask(task *Task) (string, error)
 	GetTasks() ([]*Task, error)
 	GetTaskByID(id string) (*Task, error)
 	UpdateTask(task *Task) error
@@ -15,7 +15,7 @@ type Service interface {
 }
 
 type Repository interface {
-	Save(task *Task) error
+	Save(task *Task) (string, error)
 	FindAll() ([]*Task, error)
 	FindByID(id string) (*Task, error)
 	Update(task *Task) error

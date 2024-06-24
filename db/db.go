@@ -7,7 +7,7 @@ import (
 	task "github.com/jimweng/gogolookTask"
 )
 
-const rootPath = "./userList/"
+const rootPath = "./task/"
 
 type FileSystem interface {
 	WriteFile(filename string, data []byte, perm fs.FileMode) error
@@ -65,8 +65,8 @@ func NewRepository(filePath string, fs FileSystem) *Repository {
 	}
 }
 
-func (r *Repository) Save(task *task.Task) error {
-	return nil
+func (r *Repository) Save(task *task.Task) (string, error) {
+	return "", nil
 }
 func (r *Repository) FindAll() ([]*task.Task, error) {
 	return nil, nil
