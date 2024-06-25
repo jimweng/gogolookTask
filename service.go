@@ -17,11 +17,11 @@ func Must(service *Service, err error) *Service {
 	return service
 }
 
-func (s *TaskService) CreateTask(task *Task) (string, error) {
-	return s.repo.Save(task)
+func (s *TaskService) CreateTask(id string, task *Task) (string, error) {
+	return s.repo.Save(id, task)
 }
 
-func (s *TaskService) GetTasks() ([]*Task, error) {
+func (s *TaskService) GetTasks() (*TasksData, error) {
 	return s.repo.FindAll()
 }
 
@@ -29,8 +29,8 @@ func (s *TaskService) GetTaskByID(id string) (*Task, error) {
 	return s.repo.FindByID(id)
 }
 
-func (s *TaskService) UpdateTask(task *Task) error {
-	return s.repo.Update(task)
+func (s *TaskService) UpdateTask(id string, task *Task) error {
+	return s.repo.Update(id, task)
 }
 
 func (s *TaskService) DeleteTask(id string) error {

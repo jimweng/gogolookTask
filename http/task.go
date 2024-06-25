@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	task "github.com/jimweng/gogolookTask"
 )
@@ -27,8 +27,9 @@ func (s *Server) HandlePosTask() http.HandlerFunc {
       s.respond(w, err, http.StatusBadRequest, nil)
     }
 
-    res, err := s.svc.CreateTask(&task.Task{
-      ID: uuid.New().String(),
+    id := uuid.New().String()
+
+    res, err := s.svc.CreateTask(id, &task.Task{
       Name: req.Name,
       Status: req.Status,
     })
@@ -51,9 +52,7 @@ func (s *Server) HandleUpdateTask() http.HandlerFunc {
       s.respond(w, err, http.StatusBadRequest, nil)
       return
     }
-
-    err = s.svc.UpdateTask(&task.Task{
-      ID: id,
+    err = s.svc.UpdateTask(id, &task.Task{
       Name: req.Name,
       Status: req.Status,
     })

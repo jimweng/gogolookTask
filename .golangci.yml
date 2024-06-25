@@ -2,30 +2,24 @@
 linters:
   disable:
     - contextcheck
-    - deadcode
     - depguard
     - dupl
     - exhaustruct
-    - exhaustivestruct
+    - forbidigo
     - gci
     - gochecknoglobals
     - godox
     - goerr113
-    - golint
-    - ifshort
-    - interfacer
+    - gomnd
     - lll
-    - maligned
-    - nosnakecase
     - nlreturn
-    - scopelint
-    - structcheck
     - tagliatelle
-    - varcheck
     - varnamelen
     - wrapcheck
     - wsl
     - tagalign
+    - intrange
+    - copyloopvar
   enable-all: true
 linters-settings:
   funlen:

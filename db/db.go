@@ -1,20 +1,20 @@
 package db
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 
 	task "github.com/jimweng/gogolookTask"
 )
 
-const rootPath = "./task/"
-
 type FileSystem interface {
 	WriteFile(filename string, data []byte, perm fs.FileMode) error
 	RemoveAll(path string) error
-	MkdirAll(path string, perm fs.FileMode) error
 	Remove(path string) error
-	Rename(oldpath, newpath string) error
 	Create(name string) (*os.File, error)
 	ReadFile(name string) ([]byte, error)
 }
@@ -29,16 +29,8 @@ func (OSFileSystem) RemoveAll(path string) error {
 	return os.RemoveAll(path)
 }
 
-func (OSFileSystem) MkdirAll(path string, perm fs.FileMode) error {
-	return os.MkdirAll(path, perm)
-}
-
 func (OSFileSystem) Remove(path string) error {
 	return os.Remove(path)
-}
-
-func (OSFileSystem) Rename(oldpath, newpath string) error {
-	return os.Rename(oldpath, newpath)
 }
 
 func (OSFileSystem) Create(name string) (*os.File, error) {
@@ -65,18 +57,85 @@ func NewRepository(filePath string, fs FileSystem) *Repository {
 	}
 }
 
-func (r *Repository) Save(task *task.Task) (string, error) {
-	return "", nil
+
+// TODO: duplicate check
+func (r *Repository) Save(id string, task *task.Task) (string, error) {
+	taskData, err := loadTasks(r.filePath)
+	if err != nil {
+		return "", errors.New("failed to read file")
+	}
+
+	if _, exists := taskData.Tasks[id]; exists {
+		return "", errors.New("the task already exists")
+	}
+	return id, nil
 }
-func (r *Repository) FindAll() ([]*task.Task, error) {
-	return nil, nil
+
+func (r *Repository) FindAll() (*task.TasksData, error) {
+	return loadTasks(r.filePath)
 }
+
 func (r *Repository) FindByID(id string) (*task.Task, error) {
-	return nil, nil
+	taskData, err := loadTasks(r.filePath)
+	if err != nil {
+		return nil, errors.New("failed to read file")
+	}
+
+	task, _ := taskData.Tasks[id]
+	return &task, nil
 }
-func (r *Repository) Update(task *task.Task) error {
-	return nil
+
+func (r *Repository) Update(id string, task *task.Task) error {
+	taskData, err := loadTasks(r.filePath)
+	if err != nil {
+		return errors.New("failed to read file")
+	}
+
+	taskData.Tasks[id] = *task
+
+	return r.saveTasks(taskData)
 }
+
 func (r *Repository) Delete(id string) error {
+	taskData, err := loadTasks(r.filePath)
+	if err != nil {
+		return errors.New("failed to read file")
+	}
+
+	delete(taskData.Tasks, id)
+
+	return r.saveTasks(taskData)
+}
+
+func loadTasks(filePath string) (*task.TasksData, error) {
+	var tasksData task.TasksData
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	byteValue, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file: %v", err)
+	}
+
+	err = json.Unmarshal(byteValue, &tasksData)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling JSON: %v", err)
+	}
+
+	return &tasksData, nil
+}
+
+func (r *Repository) saveTasks(taskData *task.TasksData) error {
+	bytes, err := json.Marshal(taskData)
+	if err != nil {
+		return errors.New("failed to marshal task data")
+	}
+
+	if err = r.fileSystem.WriteFile(r.filePath, bytes, fs.ModePerm); err != nil {
+		return errors.New("failed to write file")
+	}
 	return nil
 }

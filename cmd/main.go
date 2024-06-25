@@ -11,7 +11,7 @@ import (
 	thttp "github.com/jimweng/gogolookTask/http"
 )
 
-const filePath = "/storage"
+const filePath = "./storage/tasks.json"
 
 func main() {
   const defaultPort = 8080
