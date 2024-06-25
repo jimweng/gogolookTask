@@ -17,8 +17,8 @@ func Must(service *Service, err error) *Service {
 	return service
 }
 
-func (s *TaskService) CreateTask(id string, task *Task) (string, error) {
-	return s.repo.Save(id, task)
+func (s *TaskService) CreateTask(task *Task) (string, error) {
+	return s.repo.Save(task)
 }
 
 func (s *TaskService) GetTasks() (*TasksData, error) {

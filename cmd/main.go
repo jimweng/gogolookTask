@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 
 	task "github.com/jimweng/gogolookTask"
 	"github.com/jimweng/gogolookTask/db"
 	thttp "github.com/jimweng/gogolookTask/http"
 )
-
-const filePath = "./storage/tasks.json"
 
 func main() {
   const defaultPort = 8080
@@ -24,11 +23,12 @@ func main() {
 }
 
 func run(port int) error {
-  fs := db.NewFileSystem()
-  repo := db.NewRepository(filePath, fs)
-  sv := task.NewService(repo)
-  srv := thttp.NewServer(sv)
+	filePath := filepath.Join("storage", "task.json")
+	fs := db.NewFileSystem()
+	repo := db.NewRepository(filePath, fs)
+	sv := task.NewService(repo)
+	srv := thttp.NewServer(sv)
 
-  fmt.Println("server started")
-  return http.ListenAndServe(fmt.Sprintf(":%d", port), srv)
+	fmt.Println("server started")
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), srv) //nolint:gosec
 }

@@ -8,7 +8,8 @@ import (
 	"io/fs"
 	"os"
 
-	task "github.com/jimweng/gogolookTask"
+	"github.com/google/uuid"
+	gtask "github.com/jimweng/gogolookTask"
 )
 
 type FileSystem interface {
@@ -57,47 +58,65 @@ func NewRepository(filePath string, fs FileSystem) *Repository {
 	}
 }
 
-
-// TODO: duplicate check
-func (r *Repository) Save(id string, task *task.Task) (string, error) {
-	taskData, err := loadTasks(r.filePath)
+func (r *Repository) Save(task *gtask.Task) (string, error) {
+	taskData, err := r.loadTasks()
 	if err != nil {
 		return "", errors.New("failed to read file")
 	}
 
-	if _, exists := taskData.Tasks[id]; exists {
-		return "", errors.New("the task already exists")
+	for _, v := range taskData.Tasks {
+		if v.Name == task.Name {
+			return "", errors.New("the username is existed")
+		}
+	}
+
+	id := uuid.New().String()
+	if taskData.Tasks == nil {
+		taskData.Tasks = make(map[string]*gtask.Task)
+	}
+
+	taskData.Tasks[id] = task
+
+	if err := r.saveTasks(taskData); err != nil {
+		return "", errors.New("failed to save file")
 	}
 	return id, nil
 }
 
-func (r *Repository) FindAll() (*task.TasksData, error) {
-	return loadTasks(r.filePath)
+func (r *Repository) FindAll() (*gtask.TasksData, error) {
+	return r.loadTasks()
 }
 
-func (r *Repository) FindByID(id string) (*task.Task, error) {
-	taskData, err := loadTasks(r.filePath)
+func (r *Repository) FindByID(id string) (*gtask.Task, error) {
+	taskData, err := r.loadTasks()
 	if err != nil {
 		return nil, errors.New("failed to read file")
 	}
 
-	task, _ := taskData.Tasks[id]
-	return &task, nil
+	task, exist := taskData.Tasks[id]
+	if !exist {
+		return nil, errors.New("not found")
+	}
+	return task, nil
 }
 
-func (r *Repository) Update(id string, task *task.Task) error {
-	taskData, err := loadTasks(r.filePath)
+func (r *Repository) Update(id string, task *gtask.Task) error {
+	taskData, err := r.loadTasks()
 	if err != nil {
 		return errors.New("failed to read file")
 	}
 
-	taskData.Tasks[id] = *task
+	if _, exist := taskData.Tasks[id]; !exist {
+		return errors.New("id not found")
+	}
+
+	taskData.Tasks[id] = task
 
 	return r.saveTasks(taskData)
 }
 
 func (r *Repository) Delete(id string) error {
-	taskData, err := loadTasks(r.filePath)
+	taskData, err := r.loadTasks()
 	if err != nil {
 		return errors.New("failed to read file")
 	}
@@ -107,10 +126,31 @@ func (r *Repository) Delete(id string) error {
 	return r.saveTasks(taskData)
 }
 
-func loadTasks(filePath string) (*task.TasksData, error) {
-	var tasksData task.TasksData
-	file, err := os.Open(filePath)
+func (r *Repository) loadTasks() (*gtask.TasksData, error) {
+	var tasksData gtask.TasksData
+	file, err := os.Open(r.filePath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			f, err := r.fileSystem.Create(r.filePath)
+			if err != nil {
+				return nil, errors.New("failed to create file")
+			}
+			defer f.Close()
+
+			jsonData, err := json.Marshal(&gtask.TasksData{
+				Tasks: map[string]*gtask.Task{},
+			})
+			if err != nil {
+				return nil, errors.New("failed to marshal filesystem")
+			}
+
+			_, err = f.Write(jsonData)
+			if err != nil {
+				return nil, errors.New("failed to write to file")
+			}
+
+			return r.loadTasks()
+		}
 		return nil, fmt.Errorf("error opening file: %v", err)
 	}
 	defer file.Close()
@@ -128,7 +168,7 @@ func loadTasks(filePath string) (*task.TasksData, error) {
 	return &tasksData, nil
 }
 
-func (r *Repository) saveTasks(taskData *task.TasksData) error {
+func (r *Repository) saveTasks(taskData *gtask.TasksData) error {
 	bytes, err := json.Marshal(taskData)
 	if err != nil {
 		return errors.New("failed to marshal task data")
