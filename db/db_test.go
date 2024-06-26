@@ -57,7 +57,7 @@ func Test_Save(t *testing.T) {
 		require.Error(t, err, errMsg)
 	})
 
-	t.Run("the username is existed", func(t *testing.T) {
+	t.Run("the taskname is existed", func(t *testing.T) {
 		mfs := mockFileSystem()
 
 		repo := gtaskdb.NewRepository(testFileName, mfs)
@@ -65,7 +65,7 @@ func Test_Save(t *testing.T) {
 			Name:   testName,
 			Status: testStatus,
 		})
-		require.Error(t, err, "the username is existed")
+		require.Error(t, err, "the taskname is existed")
 	})
 
 	t.Run("failed to save tasks", func(t *testing.T) {
@@ -80,14 +80,14 @@ func Test_Save(t *testing.T) {
 		require.Error(t, err, errMsg)
 	})
 
-	t.Run("the username is existed", func(t *testing.T) {
+	t.Run("the taskname is existed", func(t *testing.T) {
 		mfs := mockFileSystem()
 		repo := gtaskdb.NewRepository(testFileName, mfs)
 		_, err := repo.Save(&gtask.Task{
 			Name:   testName,
 			Status: testStatus,
 		})
-		require.Error(t, err, "the username is existed")
+		require.Error(t, err, "the taskname is existed")
 	})
 }
 

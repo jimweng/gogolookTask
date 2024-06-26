@@ -61,7 +61,7 @@ func (r *Repository) Save(task *gtask.Task) (string, error) {
 
 	for _, v := range taskData.Tasks {
 		if v.Name == task.Name {
-			return "", errors.New("the username is existed")
+			return "", errors.New("the taskname is existed")
 		}
 	}
 
