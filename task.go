@@ -1,7 +1,7 @@
 package task
 
 type Task struct {
-	Name   string `json:"name,omitempty"`
+	Name   string `json:"name,omitempty" validate:"required,max=20,alphanum"`
 	Status Status `json:"status"`
 }
 

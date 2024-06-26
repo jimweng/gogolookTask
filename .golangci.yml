@@ -20,6 +20,7 @@ linters:
     - tagalign
     - intrange
     - copyloopvar
+    - perfsprint
   enable-all: true
 linters-settings:
   funlen:

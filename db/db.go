@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 
@@ -13,25 +12,17 @@ import (
 )
 
 type FileSystem interface {
-	WriteFile(filename string, data []byte, perm fs.FileMode) error
-	RemoveAll(path string) error
-	Remove(path string) error
+	WriteFile(name string, data []byte, perm fs.FileMode) error
 	Create(name string) (*os.File, error)
 	ReadFile(name string) ([]byte, error)
+	Open(name string) (*os.File, error)
 }
+
 
 type OSFileSystem struct{}
 
-func (OSFileSystem) WriteFile(filename string, data []byte, perm fs.FileMode) error {
-	return os.WriteFile(filename, data, perm)
-}
-
-func (OSFileSystem) RemoveAll(path string) error {
-	return os.RemoveAll(path)
-}
-
-func (OSFileSystem) Remove(path string) error {
-	return os.Remove(path)
+func (OSFileSystem) WriteFile(name string, data []byte, perm fs.FileMode) error {
+	return os.WriteFile(name, data, perm)
 }
 
 func (OSFileSystem) Create(name string) (*os.File, error) {
@@ -40,6 +31,10 @@ func (OSFileSystem) Create(name string) (*os.File, error) {
 
 func (OSFileSystem) ReadFile(name string) ([]byte, error) {
 	return os.ReadFile(name)
+}
+
+func (OSFileSystem) Open(name string) (*os.File, error) {
+	return os.Open(name)
 }
 
 type Repository struct {
@@ -127,8 +122,7 @@ func (r *Repository) Delete(id string) error {
 }
 
 func (r *Repository) loadTasks() (*gtask.TasksData, error) {
-	var tasksData gtask.TasksData
-	file, err := os.Open(r.filePath)
+	file, err := r.fileSystem.Open(r.filePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			f, err := r.fileSystem.Create(r.filePath)
@@ -155,11 +149,12 @@ func (r *Repository) loadTasks() (*gtask.TasksData, error) {
 	}
 	defer file.Close()
 
-	byteValue, err := io.ReadAll(file)
+	byteValue, err := r.fileSystem.ReadFile(r.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %v", err)
 	}
 
+	var tasksData gtask.TasksData
 	err = json.Unmarshal(byteValue, &tasksData)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling JSON: %v", err)
